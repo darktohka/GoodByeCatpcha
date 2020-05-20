@@ -20,7 +20,8 @@ from goodbyecaptcha import package_dir
 from goodbyecaptcha.exceptions import SafePassage, TryAgain
 from goodbyecaptcha.util import patch_pyppeteer, get_event_loop, load_file, get_random_proxy
 
-logging.basicConfig(format="%(asctime)s %(message)s")
+if len(logging.root.handlers) == 0:
+    logging.basicConfig(format="%(asctime)s %(message)s")
 
 try:
     import yaml
