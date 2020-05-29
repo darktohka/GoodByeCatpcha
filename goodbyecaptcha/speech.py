@@ -18,6 +18,7 @@ import pocketsphinx
 import requests
 import speech_recognition as sr
 import websockets
+import logging
 from pocketsphinx.pocketsphinx import Decoder
 from pydub import AudioSegment
 
@@ -71,13 +72,11 @@ class Google(object):
         # recognize speech using Google Speech Recognition
         audio_output = None
         try:
-            print('recognize speech using Google Speech Recognition')
             audio_output = recognizer.recognize_google(audio)
-            print("Google Speech Recognition: " + audio_output)
         except sr.UnknownValueError:
-            print("Google Speech Recognition could not understand audio")
+            logging.warning("Google Speech Recognition could not understand audio")
         except sr.RequestError as e:
-            print("Could not request results from Google Speech Recognition service; {0}".format(e))
+            logging.warning("Could not request results from Google Speech Recognition service; {0}".format(e))
         return audio_output
 
 

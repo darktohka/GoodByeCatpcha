@@ -30,11 +30,13 @@ class SolveAudio(Base):
         self.log('Wait for Audio Buttom ...')
         await self.loop.create_task(self.wait_for_audio_button())
         self.log('Click random images ...')
-        for _ in range(int(random.uniform(3, 6))):
-            await self.click_tile()  # Click random images
-        await asyncio.sleep(random.uniform(1, 2))  # Wait 1-2 seg
+        if random.random() > 0.2:
+            for _ in range(int(random.uniform(2, 5))):
+                await self.click_tile()  # Click random images
+        await asyncio.sleep(random.uniform(1, 3))  # Wait 1-3 seg
         await self.click_verify()  # Click Verify button
         self.log('Clicking Audio Buttom ...')
+        await asyncio.sleep(random.uniform(1, 2))  # Wait 1-2 sec
         result = await self.click_audio_button()  # Click audio button
         if isinstance(result, dict):
             if result["status"] == "detected":  # Verify if detected
@@ -42,10 +44,13 @@ class SolveAudio(Base):
         # Start process
         await self.get_frames()
         answer = None
-        for _ in range(2):
+        start_url = self.page.url
+        for _ in range(4):
             try:
                 answer = await self.loop.create_task(self.get_audio_response())
+                temp = self.service
                 self.service = self.speech_secondary_service.lower()  # Secondary Recognition
+                self.speech_secondary_service = self.service
             except TryAgain:
                 self.log('Try again Error!')
             except DownloadError:
@@ -60,6 +65,8 @@ class SolveAudio(Base):
                         continue
             await self.type_audio_response(answer)
             await self.click_verify()
+            if start_url != self.page.url:
+                return {'status': 'success'}
             try:
                 result = await self.check_detection(self.animation_timeout)
             except TryAgain:

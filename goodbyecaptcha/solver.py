@@ -19,9 +19,8 @@ from goodbyecaptcha.util import get_random_proxy
 
 
 class Solver(Base):
-    def __init__(self, pageurl, sitekey, loop=None, proxy=None, proxy_auth=None, options=None, **kwargs):
+    def __init__(self, pageurl, loop=None, proxy=None, proxy_auth=None, options=None, **kwargs):
         self.url = pageurl
-        self.sitekey = sitekey
         self.loop = loop or util.get_event_loop()
         self.proxy = proxy
         self.proxy_auth = proxy_auth
@@ -35,6 +34,7 @@ class Solver(Base):
         result = None
         try:
             self.browser = await self.get_new_browser()
+            self.context = await self.browser.createIncognitoBrowserContext()
             await self.open_page(self.url, new_page=False)  # Use first page
             result = await self.solve()
         except NetworkError as ex:
@@ -63,9 +63,6 @@ class Solver(Base):
         finally:
             if isinstance(result, dict):
                 status = result['status'].capitalize()
-                print(f"Result: {status}")
-            elapsed = time.time() - start
-            print(f"Time elapsed: {elapsed}")
             return result
 
     async def solve(self):
@@ -75,10 +72,6 @@ class Solver(Base):
             await self.get_frames()
         except Exception:
             raise IframeError("Problem locating reCAPTCHA frames")
-        self.log('Wait for CheckBox ...')
-        await self.loop.create_task(self.wait_for_checkbox())
-        self.log('Click CheckBox ...')
-        await self.click_checkbox()
         try:
             result = await self.loop.create_task(
                 self.check_detection(self.animation_timeout))  # Detect Detection or captcha finish
@@ -108,14 +101,7 @@ class Solver(Base):
                                     proxy_auth=self.proxy_auth, options=self.options)
             solve = self.audio.solve_by_audio
 
-        result = await self.loop.create_task(solve())
-        if result["status"] == "success":
-            code = await self.g_recaptcha_response()
-            if code:
-                result["code"] = code
-                return result
-        else:
-            return result
+        return await self.loop.create_task(solve())
 
     async def wait_for_checkbox(self):
         """Wait for checkbox to appear."""

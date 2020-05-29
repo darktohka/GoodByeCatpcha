@@ -1,9 +1,9 @@
-aiobotocore
-aiofiles
-aiohttp
+aiobotocore==0.9.3
+aiofiles==0.3.2
+aiohttp==3.4.2
 appdirs
-async-generator
-async-timeout
+async-generator==1.10
+async-timeout==3.0.0
 attrs
 beautifulsoup4
 botocore
@@ -38,6 +38,7 @@ SpeechRecognition
 tqdm
 urllib3
 user-agent
-websockets
+websockets==8.1
 wrapt
 yarl
+random-user-agent

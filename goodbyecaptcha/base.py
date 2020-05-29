@@ -10,7 +10,7 @@ import sys
 import traceback
 from shutil import copyfile
 
-import fuckcaptcha as fucking
+import fuckcaptcha
 from pyppeteer.errors import TimeoutError, PageError, PyppeteerError, NetworkError
 from pyppeteer.launcher import Launcher
 from pyppeteer.util import merge_dict
@@ -22,6 +22,12 @@ from goodbyecaptcha.util import patch_pyppeteer, get_event_loop, load_file, get_
 
 if len(logging.root.handlers) == 0:
     logging.basicConfig(format="%(asctime)s %(message)s")
+
+from random_user_agent.user_agent import UserAgent
+from random_user_agent.params import SoftwareName, OperatingSystem
+software_names = [SoftwareName.ANDROID.value, SoftwareName.CHROME.value, SoftwareName.EDGE.value, SoftwareName.OPERA.value, SoftwareName.FIREFOX.value]
+operating_systems = [OperatingSystem.ANDROID.value, OperatingSystem.WINDOWS.value, OperatingSystem.CHROMEOS.value, OperatingSystem.MAC_OS_X.value]
+user_agent_rotator = UserAgent(software_names=software_names, operating_systems=operating_systems, limit=100)
 
 try:
     import yaml
@@ -169,7 +175,7 @@ class Base:
         """Create new page"""
         if new_page:
             self.page_index += 1  # Add Actual Index
-            self.page = await self.browser.newPage()
+            self.page = await self.context.newPage()
         if self.proxy_auth and self.proxy:
             await self.page.authenticate(self.proxy_auth)
             self.log(f"Open page with proxy {self.proxy}")
@@ -184,7 +190,7 @@ class Base:
         """Navigate to address"""
         jquery_js = await load_file(self.jquery_data)
         await self.page.evaluateOnNewDocument("() => {\n%s}" % jquery_js)  # Inject JQuery
-        await fucking.bypass_detections(self.page)  # bypass reCAPTCHA detection in pyppeteer
+        await fuckcaptcha.bypass_detections(self.page)  # bypass reCAPTCHA detection in pyppeteer
         retry = 3  # Go to Page and Retry 3 times
         while True:
             try:
@@ -241,7 +247,6 @@ class Base:
             '--metrics-recording-only',
             '--no-first-run',
             '--safebrowsing-disable-auto-update',
-            '--no-sandbox',
             # Automation arguments
             '--enable-automation',
             '--password-store=basic',
@@ -260,6 +265,7 @@ class Base:
         self.launcher = Launcher(self.options)
         browser = await self.launcher.launch()
         self.page = (await browser.pages())[0]  # Set first page
+        await self.page.setUserAgent(user_agent_rotator.get_random_user_agent())
         return browser
 
     async def page_switch(self, index=0):
