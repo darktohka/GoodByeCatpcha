@@ -66,6 +66,7 @@ class SolveAudio(Base):
                         continue
             await self.type_audio_response(answer)
             await self.click_verify()
+            await asyncio.sleep(2.0)
             if start_url != self.page.url:
                 return {'status': 'success'}
             try:
