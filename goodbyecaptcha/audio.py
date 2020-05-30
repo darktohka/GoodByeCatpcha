@@ -46,7 +46,7 @@ class SolveAudio(Base):
         await self.get_frames()
         answer = None
         start_url = self.page.url
-        for _ in range(4):
+        for _ in range(8):
             try:
                 answer = await self.loop.create_task(self.get_audio_response())
                 temp = self.service
