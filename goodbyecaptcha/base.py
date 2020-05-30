@@ -223,6 +223,7 @@ class Base:
 
     async def get_new_browser(self):
         """Get a new browser, set proxy and arguments"""
+        agent = user_agent_rotator.get_random_user_agent()
         args = [
             '--cryptauth-http-host ""',
             '--disable-accelerated-2d-canvas',
@@ -250,7 +251,8 @@ class Base:
             # Automation arguments
             '--enable-automation',
             '--password-store=basic',
-            '--use-mock-keychain']
+            '--use-mock-keychain',
+            '--user-agent=' + agent]
         if self.proxy:
             if self.proxy == 'auto':
                 self.proxy = get_random_proxy()
@@ -262,10 +264,9 @@ class Base:
             "args": args,
             #  Silence Pyppeteer logs
             "logLevel": "CRITICAL"})
-        self.launcher = Launcher(self.options)
+        self.launcher = Launcher(self.options, handleSIGINT=False, handleSIGTERM=False, handleSIGHUP=False)
         browser = await self.launcher.launch()
         self.page = (await browser.pages())[0]  # Set first page
-        await self.page.setUserAgent(user_agent_rotator.get_random_user_agent())
         return browser
 
     async def page_switch(self, index=0):

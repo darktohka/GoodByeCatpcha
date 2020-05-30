@@ -22,6 +22,8 @@ class Solver(Base):
     def __init__(self, pageurl, loop=None, proxy=None, proxy_auth=None, options=None, **kwargs):
         self.url = pageurl
         self.loop = loop or util.get_event_loop()
+        self.browser = None
+        self.context = None
         self.proxy = proxy
         self.proxy_auth = proxy_auth
         self.options = merge_dict({} if options is None else options, kwargs)
@@ -61,6 +63,12 @@ class Solver(Base):
             traceback.print_exc(file=sys.stdout)
             print(f"Error unexpected: {ex}")
         finally:
+            if self.context:
+                await self.context.close()
+                self.context = None
+            if self.browser:
+                await self.browser.close()
+                self.browser = None
             if isinstance(result, dict):
                 status = result['status'].capitalize()
             return result

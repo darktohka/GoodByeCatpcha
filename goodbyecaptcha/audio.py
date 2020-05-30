@@ -30,13 +30,13 @@ class SolveAudio(Base):
         self.log('Wait for Audio Buttom ...')
         await self.loop.create_task(self.wait_for_audio_button())
         self.log('Click random images ...')
-        if random.random() > 0.2:
-            for _ in range(int(random.uniform(2, 5))):
-                await self.click_tile()  # Click random images
+        for _ in range(int(random.uniform(2, 5))):
+            await self.click_tile()  # Click random images
+            await asyncio.sleep(random.uniform(0.2, 1))  # Wait 1-3 seg
         await asyncio.sleep(random.uniform(1, 3))  # Wait 1-3 seg
         await self.click_verify()  # Click Verify button
         self.log('Clicking Audio Buttom ...')
-        await asyncio.sleep(random.uniform(1, 2))  # Wait 1-2 sec
+        await asyncio.sleep(random.uniform(1, 3))  # Wait 1-3 sec
         result = await self.click_audio_button()  # Click audio button
         if isinstance(result, dict):
             if result["status"] == "detected":  # Verify if detected
