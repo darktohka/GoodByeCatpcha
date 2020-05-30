@@ -31,9 +31,9 @@ class SolveAudio(Base):
         await self.loop.create_task(self.wait_for_audio_button())
         self.log('Click random images ...')
         for _ in range(int(random.uniform(2, 5))):
+            await asyncio.sleep(random.uniform(0.2, 0.5))  # Wait 1-3 seg
             await self.click_tile()  # Click random images
-            await asyncio.sleep(random.uniform(0.2, 1))  # Wait 1-3 seg
-        await asyncio.sleep(random.uniform(1, 3))  # Wait 1-3 seg
+        await asyncio.sleep(random.uniform(1.5, 3.5))  # Wait 1-3 seg
         await self.click_verify()  # Click Verify button
         self.log('Clicking Audio Buttom ...')
         await asyncio.sleep(random.uniform(1, 3))  # Wait 1-3 sec
@@ -41,6 +41,7 @@ class SolveAudio(Base):
         if isinstance(result, dict):
             if result["status"] == "detected":  # Verify if detected
                 return result
+        await asyncio.sleep(random.uniform(1, 3))  # Wait 1-3 sec
         # Start process
         await self.get_frames()
         answer = None
@@ -70,6 +71,8 @@ class SolveAudio(Base):
             try:
                 result = await self.check_detection(self.animation_timeout)
             except TryAgain:
+                continue
+            except SafePassage:
                 continue
             except Exception:
                 raise ResolveMoreLater('You must solve more captchas.')
@@ -150,9 +153,19 @@ class SolveAudio(Base):
 
     async def type_audio_response(self, answer):
         """Enter answer text on input"""
+        self.log("Waiting audio response")
+
+        for i in range(4):
+            response_input = await self.image_frame.J("#audio-response")
+
+            if response_input:
+                break
+
+            await asyncio.sleep(2.0)
+
         self.log("Typing audio response")
-        response_input = await self.image_frame.J("#audio-response")
         length = random.uniform(70, 130)
+
         try:
             await self.loop.create_task(response_input.type(text=answer, delay=length))
         except Exception:
@@ -193,6 +206,10 @@ class SolveAudio(Base):
         return answer
 
     async def add_error_humans_to_text(self, answer):
+        if random.random() > 0.5:
+            self.log('Skipping human answer.')
+            return answer
+
         """Create Imperfections in text_output (The Humans is not perfect)"""
         answer = answer[:-1] if 6 < len(answer) < 20 else answer
         answer = answer.split(' ')[0] + ' ' + answer.split(' ')[1] \

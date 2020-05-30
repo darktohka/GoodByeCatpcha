@@ -252,7 +252,7 @@ class Base:
             '--enable-automation',
             '--password-store=basic',
             '--use-mock-keychain',
-            '--user-agent=' + agent]
+            '--user-agent="{}"'.format(agent)]
         if self.proxy:
             if self.proxy == 'auto':
                 self.proxy = get_random_proxy()
@@ -266,7 +266,10 @@ class Base:
             "logLevel": "CRITICAL"})
         self.launcher = Launcher(self.options, handleSIGINT=False, handleSIGTERM=False, handleSIGHUP=False)
         browser = await self.launcher.launch()
-        self.page = (await browser.pages())[0]  # Set first page
+        pages = await browser.pages()
+        for page in pages:
+            await page.setUserAgent(agent)
+        self.page = pages[0]  # Set first page
         return browser
 
     async def page_switch(self, index=0):

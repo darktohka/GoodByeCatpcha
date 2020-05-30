@@ -79,7 +79,7 @@ class Solver(Base):
         try:
             await self.get_frames()
         except Exception:
-            raise IframeError("Problem locating reCAPTCHA frames")
+            return {'status': 'success'}
         try:
             result = await self.loop.create_task(
                 self.check_detection(self.animation_timeout))  # Detect Detection or captcha finish
